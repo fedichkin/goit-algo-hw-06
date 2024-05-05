@@ -15,8 +15,14 @@ class Name(Field):
 
 
 class Phone(Field):
-    def validate(self):
-        return re.match(r'\d{10}', self.value) is not None
+    def __init__(self, value):
+        if self.validate(value):
+            super().__init__(value)
+        else:
+            raise ValueError
+
+    def validate(self, value):
+        return re.match(r'^\d{10}$', value) is not None
 
 
 class Record:
@@ -37,13 +43,15 @@ class Record:
             del self.phones[index_phone]
 
     def edit_phone(self, old_phone, new_phone):
-        phone = next((item for item in self.phones if item.value == old_phone), None)
+        index_phone = next((index for (index, item) in enumerate(self.phones) if item.value == old_phone), None)
 
-        if phone is not None:
-            phone.value = new_phone
+        if index_phone is not None:
+            self.phones[index_phone] = Phone(new_phone)
+        else:
+            raise ValueError
 
     def find_phone(self, phone):
-        return next((item.value for item in self.phones if item.value == phone), None)
+        return next((item for item in self.phones if item.value == phone), None)
 
 
 class AddressBook(UserDict):
